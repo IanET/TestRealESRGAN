@@ -1,4 +1,4 @@
-using LibOnnxRuntime
+using LibOnnxRuntime, Images, FileIO
 import .GC: @preserve
 import .Base: cconvert
 
@@ -9,8 +9,6 @@ if Sys.iswindows()
 elseif Sys.islinux()
     const MODEL_PATH = "Real-ESRGAN-x4plus.onnx"
 end
-# const INPUT_NAME = "x"
-# const OUTPUT_NAME = "y"
 
 function check_status(ort, status)
     if status != OrtStatusPtr(0)
@@ -48,6 +46,17 @@ memory_info = Ptr{OrtMemoryInfo}() |> Ref
 status = CreateCpuMemoryInfo(ort, OrtArenaAllocator, OrtMemTypeDefault, memory_info)
 check_status(ort, status)
 @info "CreateCpuMemoryInfo" status memory_info[]
+
+# See: https://github.com/quic/ai-hub-apps/tree/main/apps/android/SuperResolution
+# input: name = "image", shape = [1, 3, 128, 128], type = float32
+# output: name = "upscaled_image", shape = [1, 3, 512, 512], type = float32 
+
+img = load("Sample2.jpg") 
+@info "Input image shape:" size(img) # 128x128
+cv = channelview(img)
+cvf32 = convert(Array{Float32}, cv)
+
+# cvf32p = permutedims(cvf32, (2, 3, 1))
 
 # input_shape = Clonglong[3, 4, 5]
 # input_values = fill(Cfloat(1.0), 5, 4, 3) # ONNX uses row-major order
