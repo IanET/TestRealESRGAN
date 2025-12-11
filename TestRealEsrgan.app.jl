@@ -93,7 +93,7 @@ output_col_major = permutedims(output_row_major, (3, 1, 2))
 output_n0f8 = N0f8.(clamp.(output_col_major, 0.0f0, 1.0f0))
 img_out = colorview(RGB, output_n0f8)
 # save("Sample2_upscaled.png", img_out)
-@info "Upscaled image saved to Sample2_upscaled.png"
+
 
 # Clean up resources
 ReleaseValue(ort, input_tensor[])
