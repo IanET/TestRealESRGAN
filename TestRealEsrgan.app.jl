@@ -2,6 +2,8 @@ using LibOnnxRuntime, Images, FileIO
 import .GC: @preserve
 import .Base: cconvert
 
+const QnnRuntime = ".\\microsoft.ml.onnxruntime.qnn.1.23.2\\runtimes\\win-arm64\\native\\onnxruntime.dll"
+
 to_cwstring(s::String) = cconvert(Cwstring, s)
 
 if Sys.iswindows()
@@ -20,7 +22,12 @@ function check_status(ort, status)
     end
 end
 
-base = OrtGetApiBase() |> unsafe_load
+# base = OrtGetApiBase() |> unsafe_load
+
+# Load custom ONNX Runtime instead of default one
+# TODO Assert running on Snapdragon with QNN support
+base = @ccall(QnnRuntime.OrtGetApiBase()::Ptr{OrtApiBase}) |> unsafe_load
+
 ort = GetApi(base, ORT_API_VERSION) |> unsafe_load
 env = Ptr{OrtEnv}() |> Ref
 status = CreateEnv(ort, ORT_LOGGING_LEVEL_VERBOSE, "Test", env)
