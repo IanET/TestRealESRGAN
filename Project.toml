@@ -1,5 +1,7 @@
 [deps]
 CEnum = "fa961155-64e5-5f13-b03f-caf6b980ea82"
+FileIO = "5789e2e9-d7fb-5bc7-8068-2c6fae9b9549"
+Images = "916415d5-f1e6-5110-898d-aaa5f9f070e0"
 LibOnnxRuntime = "edd8e961-822f-4801-b21c-cac5f01a00fa"
 
 [sources]
