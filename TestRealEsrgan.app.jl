@@ -42,12 +42,12 @@ check_status(ort, status)
 
 provider_name = "QNNExecutionProvider"
 provider_option_keys = ["backend_type"]
-provider_option_values = ["gpu"]
+provider_option_values = ["htp"]
 @preserve provider_option_keys provider_option_values begin
     status = SessionOptionsAppendExecutionProvider(ort, options[], provider_name, pointer.(provider_option_keys), pointer.(provider_option_values), length(provider_option_keys))
     check_status(ort, status)
 end
-@info "Enabled QNN GPU execution provider"
+@info "Enabled QNN NPU (HTP) execution provider"
 
 session = Ptr{OrtSession}() |> Ref
 status = CreateSession(ort, env[], MODEL_PATH, options[], session)
