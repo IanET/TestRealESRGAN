@@ -30,7 +30,8 @@ base = @ccall(QnnRuntime.OrtGetApiBase()::Ptr{OrtApiBase}) |> unsafe_load
 
 ort = GetApi(base, ORT_API_VERSION) |> unsafe_load
 env = Ptr{OrtEnv}() |> Ref
-status = CreateEnv(ort, ORT_LOGGING_LEVEL_VERBOSE, "Test", env)
+# status = CreateEnv(ort, ORT_LOGGING_LEVEL_VERBOSE, "Test", env)
+status = CreateEnv(ort, ORT_LOGGING_LEVEL_ERROR, "Test", env)
 check_status(ort, status)
 @info "CreateEnv" status env[]
 
@@ -38,6 +39,15 @@ options = Ptr{OrtSessionOptions}() |> Ref
 status = CreateSessionOptions(ort, options)
 check_status(ort, status)
 @info "CreateSessionOptions" status options[]
+
+provider_name = "QNNExecutionProvider"
+provider_option_keys = ["backend_type"]
+provider_option_values = ["gpu"]
+@preserve provider_option_keys provider_option_values begin
+    status = SessionOptionsAppendExecutionProvider(ort, options[], provider_name, pointer.(provider_option_keys), pointer.(provider_option_values), length(provider_option_keys))
+    check_status(ort, status)
+end
+@info "Enabled QNN GPU execution provider"
 
 session = Ptr{OrtSession}() |> Ref
 status = CreateSession(ort, env[], MODEL_PATH, options[], session)
@@ -73,14 +83,13 @@ input_tensors = [input_tensor[]]
 output_tensor = Ptr{OrtValue}() 
 output_tensors = [output_tensor]
 num_outputs = length(output_tensors)
-input_name = "image"
 output_name = "upscaled_image"
-input_names = [pointer(input_name)] # Needs GC preserve
-output_names = [pointer(output_name)] # Needs GC preserve
+input_names = ["image"]
+output_names = ["upscaled_image"]
 output_tensors = Ptr{OrtValue}() |> Ref
 
-@preserve input_name output_name begin 
-    status = Run(ort, session[], C_NULL, input_names, input_tensors, length(input_tensors), output_names, length(output_names), output_tensors)
+@preserve input_names output_names begin 
+    @time status = Run(ort, session[], C_NULL, pointer.(input_names), input_tensors, length(input_tensors), pointer.(output_names), length(output_names), output_tensors)
 end
 check_status(ort, status)   
 @info "Run" status output_tensors[]
